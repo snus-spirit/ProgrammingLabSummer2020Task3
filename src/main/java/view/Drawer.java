@@ -8,8 +8,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import model.Constants;
+import model.LogicOld;
 import model.Logic;
-import model.Logicv2;
 import java.io.*;
 
 public class Drawer {
@@ -37,8 +37,8 @@ public class Drawer {
                 labelArray[i][j].setStyle("-fx-background-color: #fff4b1;");
                 labelArray[i][j].setAlignment(Pos.CENTER);
                 labelArray[i][j].setPrefSize(70, 70);
-                labelArray[i][j].setLayoutX(10 + 100 * i);
-                labelArray[i][j].setLayoutY(10 + 100 * j);
+                labelArray[i][j].setLayoutX(10 + 100 * j);
+                labelArray[i][j].setLayoutY(10 + 100 * i);
                 pane.getChildren().add(labelArray[i][j]);
             }
         }
@@ -72,10 +72,10 @@ public class Drawer {
         for (int i = 0; i < Constants.X_LENGTH; i++) {
             for (int j = 0; j < Constants.Y_LENGTH; j++) {
 
-                labelArray[i][j].setText((logic.getState(j, i) != 0)
-                        ? Integer.toString(logic.getState(j, i)) : "");
+                labelArray[i][j].setText((logic.getState(i, j) != 0)
+                        ? Integer.toString(logic.getState(i, j)) : "");
 
-                switch (logic.getState(j, i)) {
+                switch (logic.getState(i, j)) {
                     case 0: labelArray[i][j].setStyle("-fx-background-color: #fff4b1;");
                         break;
                     case 2: labelArray[i][j].setStyle("-fx-background-color: #fff094;");

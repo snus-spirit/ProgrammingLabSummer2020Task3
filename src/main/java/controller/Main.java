@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import model.Logic;
-import model.Logicv2;
 import view.Drawer;
 
 public class Main extends Application {
@@ -24,16 +23,7 @@ public class Main extends Application {
         logic.startGame();
         Drawer.drawUpdate(logic);
 
-        scene.setOnKeyPressed(e -> {
-            Controller.direction = e.getCode();
-            if (Controller.getDirection() != Direction.WAITING) {
-                logic.shifter();
-                logic.newCell();
-                Drawer.drawUpdate(logic);
-            }
-            if (!logic.endChecker() || logic.contains(2048)) {
-                Drawer.endScene(primaryStage);
-            }
-        });
+        Controller.action(scene, logic, primaryStage);
     }
+
 }

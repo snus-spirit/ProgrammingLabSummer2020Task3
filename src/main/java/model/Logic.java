@@ -1,13 +1,14 @@
 package model;
 
 import controller.Controller;
-import controller.Direction;
+
+import java.util.Arrays;
 import java.util.Random;
 
 public class Logic {
 
     public static int score = 0;
-    public int[][] field = new int[Constants.X_LENGTH][Constants.Y_LENGTH];
+    private int[][] field = new int[Constants.X_LENGTH][Constants.Y_LENGTH];
 
     public Logic(){ }
 
@@ -21,9 +22,7 @@ public class Logic {
 
     public  void startGame() {
         for (int i = 0; i < Constants.X_LENGTH; i++) {
-            for (int l = 0; l < Constants.Y_LENGTH; l++) {
-                setState(i, l, 0);
-            }
+            Arrays.fill(field[i], 0);
         }
         newCell();
         newCell();
@@ -33,47 +32,46 @@ public class Logic {
         return this.field[x][y];
     }
 
-    private   void setState(int x, int y, int newValue) {
+    private void setState(int x, int y, int newValue) {
         this.field[x][y] = newValue;
     }
 
     public void newCell() {
-
-        int cellValue = (new Random().nextInt(100) <= 10) ? 4 : 2;
+        int cellValue = (new Random().nextInt(100) < 10) ? 4 : 2;
         int randomX = new Random().nextInt(Constants.X_LENGTH);
         int randomY = new Random().nextInt(Constants.Y_LENGTH);
 
-        int count = 0;
+        int count = 1;
         while (count < Constants.FIELD_SIZE) {
             if (getState(randomX, randomY) == 0) {
                 setState(randomX, randomY, cellValue);
                 break;
             } else if (randomX + 1 < Constants.X_LENGTH) {
                 randomX++;
+            } else if (randomY + 1 < Constants.Y_LENGTH){
+                randomY++;
             } else {
                 randomX = 0;
-                if (randomY + 1 < Constants.Y_LENGTH) {
-                    randomY++;
-                } else randomY = 0;
+                randomY = 0;
             }
             count++;
         }
     }
 
     private  int [] getColumn(int y) {
-        int[] array = new int[Constants.X_LENGTH];
+        int[] result = new int[Constants.X_LENGTH];
         for (int i = 0; i < Constants.X_LENGTH; i++) {
-            array[i] = getState(i, y);
+            result[i] = field[i][y];
         }
-        return array;
+        return result;
     }
 
     private  int [] getLine(int x) {
-        int[] array = new int[Constants.Y_LENGTH];
-        for (int i = 0; i < Constants.Y_LENGTH; i++) {
-            array[i] = getState(x, i);
+        int[] result = new int[Constants.X_LENGTH];
+        for (int i = 0; i < Constants.X_LENGTH; i++) {
+            result[i] = field[x][i];
         }
-        return array;
+        return result;
     }
 
     private  void setColumn(int y, int[] array) {
@@ -83,19 +81,52 @@ public class Logic {
     }
 
     private  void setLine(int x, int[] array) {
-        for (int i = 0; i < Constants.Y_LENGTH; i++) {
+        for (int i = 0; i < Constants.X_LENGTH; i++) {
             setState(x, i, array[i]);
         }
     }
 
     /**
-     * Изменяет порядок цифр row на обратный
-     * @param row i-ий столбец field
-     * @return Возвращает измененный row
+     * Меняет поле в зависимости от нажатой клавиши
+     * turns - количество поворотов для положения "влево"
      */
-    private int[] reverseChanger(int [] row) {
-        int[] array = new int[row.length];
+    public void rotator() {
+        int turns = 0;
+        switch (Controller.getDirection()) {
+            case UP:
+                turns = 3;
+                break;
+            case RIGHT:
+                turns = 2;
+                break;
+            case DOWN:
+                turns = 1;
+                break;
+            case LEFT:
+                turns = 0;
+                break;
+        }
+        int i;
+        for (i = 0; i < turns; i++) {
+            field = turner();
+        }
 
+        for (i = 0; i < Constants.X_LENGTH; i++) {
+            setLine(i, adder(getLine(i)));
+        }
+
+        for (i = 4 - turns; i > 0 && i != 4; i--){
+            field = turner();
+        }
+    }
+
+    /**
+     * Меняет порядок в массиве на обратный
+     * @param row входной массив
+     * @return обратный порядок массива
+     */
+    private int[] reverser(int [] row) {
+        int[] array = new int[row.length];
         for (int l = 0; l < row.length; l++) {
             array[l] = row[row.length - l - 1];
         }
@@ -103,56 +134,26 @@ public class Logic {
     }
 
     /**
-     * Согласно направлению применяет или не применяет метод reverseChanger
-     * С помощью метода adder, меняет значение ячеек поля после сдвига
-     * @return Возвращает true, если были совершенны какие нибудь действия
+     * Поворачивает двумерный массив на 90 градусов по часовой стрелке
+     * @return повернутый двумерный массив
      */
-    public void shifter() {
-        Direction direction = Controller.getDirection();
-        switch (direction) {
-            case UP:
-            case DOWN:
-                for (int i = 0; i < Constants.Y_LENGTH; i++) {
-                    int[] row = getColumn(i);
-
-                    if (direction == Direction.DOWN) {
-                        row = reverseChanger(row);
-                    }
-                    int[] result = adder(row);
-
-                    if (direction == Direction.DOWN) {
-                        result = reverseChanger(result);
-                    }
-                    setColumn(i, result);
-                }
-                break;
-            case LEFT:
-            case RIGHT:
-                for (int i = 0; i < Constants.X_LENGTH; i++) {
-                    int[] row = getLine(i);
-
-                    if (direction == Direction.RIGHT) {
-                        row = reverseChanger(row);
-                    }
-                    int[] result = adder(row);
-
-                    if (direction == Direction.RIGHT) {
-                        result = reverseChanger(result);
-                    }
-                    setLine(i, result);
-                }
-                break;
+    public int[][] turner() {
+        int[][] result = new int[Constants.X_LENGTH][Constants.X_LENGTH];
+        for (int i = 0; i < Constants.Y_LENGTH; i++) {
+            result[i] = reverser(getColumn(i));
         }
+        return result;
     }
 
     /**
-     * Создает новое поле без нулей и складывает числа согласно логике
-     * @param row Ряд чисел из метода shifter, которые нужно сдвинуть и сложить
-     * @return Возвращает ряд, измененный согласно логике
+     * Согласно логике игры складывает и перемещает данные массива
+     * @param row входной массив
+     * @return массив с измененными данными
      */
     private  int [] adder(int [] row) {
 
         int[] rowWOZero = new int[row.length];
+        Arrays.fill(rowWOZero, 0);
 
         int q = 0;
         for (int value : row) {
@@ -160,9 +161,6 @@ public class Logic {
                 rowWOZero[q] = value;
                 q++;
             }
-        }
-        for (int i = q; i < rowWOZero.length; i++) {
-            rowWOZero[i] = 0;
         }
 
         q = 0;
@@ -195,22 +193,23 @@ public class Logic {
     }
 
     public boolean endChecker() {
-        if (contains(0)) return true;
+        if (contains(2048)) return true;
+        if (contains(0)) return false;
 
         int[] row;
         for (int i = 0; i < Constants.X_LENGTH; i++) {
             row = getLine(i);
             for (int j = 0; j < row.length - 1; j++) {
-                if (row[j] == row[j + 1]) return true;
+                if (row[j] == row[j + 1]) return false;
             }
         }
-        for (int i = 0; i < Constants.Y_LENGTH; i++) {
+        for (int i = 0; i < Constants.X_LENGTH; i++) {
             row = getColumn(i);
             for (int j = 0; j < row.length - 1; j++) {
-                if (row[j] == row[j + 1]) return true;
+                if (row[j] == row[j + 1]) return false;
             }
         }
-        return false;
+        return true;
     }
 
     @Override
